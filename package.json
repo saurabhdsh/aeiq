@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://saurabhdubey.github.io/airline-dashboard",
+  "homepage": "https://saurabhdsh.github.io/aeiq",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
