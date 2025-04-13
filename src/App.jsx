@@ -8,7 +8,9 @@ import AlertsPanel from "./components/dashboard/AlertsPanel";
 import FlightsTable from "./components/dashboard/FlightsTable";
 import ScenarioSimulator from "./components/dashboard/ScenarioSimulator";
 import OperationalMetrics from "./components/dashboard/OperationalMetrics";
+import ResourcePlanning from "./components/dashboard/ResourcePlanning";
 import LoginScreen from "./components/auth/LoginScreen";
+import ReactChatBot from "./components/aiBot/ReactChatBot";
 import { alerts, flights, scenarios, operationalMetrics } from "./data/mockData";
 
 function AirlineDecisionDashboard() {
@@ -226,111 +228,7 @@ function AirlineDecisionDashboard() {
           </div>
         );
       case "resources":
-        return (
-          <div className="resources-container">
-            <div className="resources-grid">
-              <div className="resource-card">
-                <div className="resource-header">
-                  <Users size={24} />
-                  <h3>Crew Assignments</h3>
-                </div>
-                <div className="resource-stats">
-                  <div className="stat">
-                    <span className="label">Available Crews</span>
-                    <span className="value">42</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">On Duty</span>
-                    <span className="value">28</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Standby</span>
-                    <span className="value">14</span>
-                  </div>
-                </div>
-                <div className="resource-alert success">
-                  <CheckCircle size={16} />
-                  <span>Optimal crew distribution for next 24 hours</span>
-                </div>
-              </div>
-
-              <div className="resource-card">
-                <div className="resource-header">
-                  <Wrench size={24} />
-                  <h3>Maintenance Schedule</h3>
-                </div>
-                <div className="resource-stats">
-                  <div className="stat">
-                    <span className="label">Scheduled</span>
-                    <span className="value">8</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">In Progress</span>
-                    <span className="value">3</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Completed</span>
-                    <span className="value">12</span>
-                  </div>
-                </div>
-                <div className="resource-alert warning">
-                  <AlertTriangle size={16} />
-                  <span>2 aircraft due for maintenance check in 48 hours</span>
-                </div>
-              </div>
-
-              <div className="resource-card">
-                <div className="resource-header">
-                  <Fuel size={24} />
-                  <h3>Fuel Management</h3>
-                </div>
-                <div className="resource-stats">
-                  <div className="stat">
-                    <span className="label">Current Stock</span>
-                    <span className="value">85%</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Daily Usage</span>
-                    <span className="value">12K gal</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Efficiency</span>
-                    <span className="value">94%</span>
-                  </div>
-                </div>
-                <div className="resource-alert info">
-                  <Info size={16} />
-                  <span>Next fuel delivery scheduled in 3 days</span>
-                </div>
-              </div>
-
-              <div className="resource-card">
-                <div className="resource-header">
-                  <Package size={24} />
-                  <h3>Ground Equipment</h3>
-                </div>
-                <div className="resource-stats">
-                  <div className="stat">
-                    <span className="label">Available</span>
-                    <span className="value">52</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">In Use</span>
-                    <span className="value">38</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Maintenance</span>
-                    <span className="value">4</span>
-                  </div>
-                </div>
-                <div className="resource-alert success">
-                  <CheckCircle size={16} />
-                  <span>All ground equipment operating at optimal capacity</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <ResourcePlanning />;
       case "performance":
         return (
           <div className="card">
@@ -487,6 +385,9 @@ function AirlineDecisionDashboard() {
         className={`mobile-overlay ${mobileMenuOpen ? 'visible' : ''}`} 
         onClick={toggleMobileMenu}
       ></div>
+
+      {/* AI Chatbot that floats over all pages */}
+      <ReactChatBot />
     </div>
   );
 }

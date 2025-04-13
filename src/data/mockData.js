@@ -144,155 +144,35 @@ export const flights = [
 export const scenarios = [
   {
     id: 1,
-    title: 'Weather Diversion',
+    name: 'Weather Diversion',
     description: 'Simulates emergency diversion due to severe weather at destination',
     variables: ['Wind Speed', 'Visibility', 'Ceiling'],
     impact: 'High',
-    lastRun: '2023-03-15',
-    options: [
-      {
-        id: 1,
-        action: 'Divert to Alternate Airport',
-        outcomes: [
-          'Increased fuel consumption',
-          'Passenger inconvenience',
-          'Potential delays for connecting flights'
-        ],
-        recommendation: true
-      },
-      {
-        id: 2,
-        action: 'Hold and Wait for Weather Improvement',
-        outcomes: [
-          'Extended flight time',
-          'Increased fuel consumption',
-          'Risk of emergency landing'
-        ]
-      },
-      {
-        id: 3,
-        action: 'Return to Origin',
-        outcomes: [
-          'Flight cancellation',
-          'Major schedule disruption',
-          'High cost impact'
-        ]
-      }
-    ]
+    lastRun: '2023-03-15'
   },
   {
     id: 2,
-    title: 'Fuel Optimization',
+    name: 'Fuel Optimization',
     description: 'Optimize fuel load based on weather, payload, and route',
     variables: ['Route', 'Payload', 'Weather', 'Fuel Price'],
     impact: 'Medium',
-    lastRun: '2023-03-18',
-    options: [
-      {
-        id: 1,
-        action: 'Implement Cost Index Optimization',
-        outcomes: [
-          'Reduced fuel consumption',
-          'Slightly longer flight time',
-          'Lower operating costs'
-        ],
-        recommendation: true
-      },
-      {
-        id: 2,
-        action: 'Maximum Speed Operation',
-        outcomes: [
-          'Shorter flight time',
-          'Higher fuel consumption',
-          'Increased operating costs'
-        ]
-      },
-      {
-        id: 3,
-        action: 'Standard Flight Profile',
-        outcomes: [
-          'Balanced approach',
-          'Average fuel consumption',
-          'Moderate cost impact'
-        ]
-      }
-    ]
+    lastRun: '2023-03-18'
   },
   {
     id: 3,
-    title: 'Crew Scheduling',
+    name: 'Crew Scheduling',
     description: 'Optimize crew scheduling to minimize costs while maintaining compliance',
     variables: ['Duty Hours', 'Rest Requirements', 'Base Location'],
     impact: 'Medium',
-    lastRun: '2023-03-17',
-    options: [
-      {
-        id: 1,
-        action: 'Dynamic Crew Reallocation',
-        outcomes: [
-          'Optimal crew utilization',
-          'Reduced overtime costs',
-          'Improved crew satisfaction'
-        ],
-        recommendation: true
-      },
-      {
-        id: 2,
-        action: 'Fixed Schedule Adherence',
-        outcomes: [
-          'Predictable patterns',
-          'Higher standby requirements',
-          'Increased operational costs'
-        ]
-      },
-      {
-        id: 3,
-        action: 'Reserve Crew Activation',
-        outcomes: [
-          'Quick resolution',
-          'Higher immediate costs',
-          'Reduced schedule flexibility'
-        ]
-      }
-    ]
+    lastRun: '2023-03-17'
   },
   {
     id: 4,
-    title: 'Maintenance Impact',
+    name: 'Maintenance Impact',
     description: 'Assess impact of unscheduled maintenance on daily operations',
     variables: ['Aircraft Type', 'Maintenance Duration', 'Spare Availability'],
     impact: 'High',
-    lastRun: '2023-03-16',
-    options: [
-      {
-        id: 1,
-        action: 'Deploy Spare Aircraft',
-        outcomes: [
-          'Minimal schedule disruption',
-          'Higher operational costs',
-          'Maintained service levels'
-        ],
-        recommendation: true
-      },
-      {
-        id: 2,
-        action: 'Consolidate Flights',
-        outcomes: [
-          'Some passenger rebooking',
-          'Reduced operational costs',
-          'Schedule optimization'
-        ]
-      },
-      {
-        id: 3,
-        action: 'Cancel Affected Flights',
-        outcomes: [
-          'Maximum disruption',
-          'Lowest immediate cost',
-          'Customer satisfaction impact'
-        ]
-      }
-    ]
+    lastRun: '2023-03-16'
   }
 ];
 

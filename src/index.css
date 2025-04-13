@@ -2365,3 +2365,171 @@ tr:hover {
     font-size: 14px;
   }
 }
+
+.additional-metrics {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: 8px;
+}
+
+.additional-metrics h6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.metric-item {
+  background: var(--white);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.metric-item label {
+  display: block;
+  font-size: 12px;
+  color: var(--gray-600);
+  margin-bottom: 4px;
+}
+
+.metric-item .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.visualization-preview {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: 8px;
+}
+
+.visualization-preview h6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+}
+
+.visualization-content {
+  background: var(--white);
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.route-visualization,
+.weather-visualization,
+.fuel-visualization,
+.crew-visualization {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.route-path,
+.weather-conditions,
+.fuel-type,
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.route-path span,
+.weather-conditions span,
+.fuel-type span,
+.schedule span {
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.path-points,
+.conditions-list,
+.schedule-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.point,
+.condition,
+.schedule-item {
+  padding: 4px 8px;
+  background: var(--gray-100);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--gray-700);
+}
+
+.fuel-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fuel-bar {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.risk-high {
+  color: var(--error);
+  background: var(--error-light);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.risk-medium {
+  color: var(--warning);
+  background: var(--warning-light);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.risk-low {
+  color: var(--success);
+  background: var(--success-light);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.route-path.optimized .point,
+.weather-conditions.optimized .condition,
+.schedule.optimized .schedule-item {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.route-path.current .point,
+.weather-conditions.current .condition,
+.schedule.current .schedule-item {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.fuel-type.optimized .bar-fill {
+  background: linear-gradient(to right, var(--success), var(--success-light));
+}
+
+.fuel-type.current .bar-fill {
+  background: linear-gradient(to right, var(--gray-400), var(--gray-300));
+}

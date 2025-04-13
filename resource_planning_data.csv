@@ -1,0 +1,10 @@
+Type,Title,Description,Impact,Priority,Current_Value,Target_Value,Timeline,Cost_Impact,Status
+optimization,Crew Scheduling Optimization,AI suggests reallocating 3 crew members to reduce layover times by 15%,High,Urgent,45,42,Next 24 hours,45000,Active
+optimization,Crew Scheduling Optimization,AI suggests reallocating 3 crew members to reduce layover times by 15%,High,Urgent,38,41,Next 24 hours,45000,Active
+optimization,Crew Scheduling Optimization,AI suggests reallocating 3 crew members to reduce layover times by 15%,High,Urgent,12,9,Next 24 hours,45000,Active
+prediction,Maintenance Prediction,Predictive maintenance suggests servicing 2 aircraft next week,Medium,Important,A320 (2),Serviced,Next 7-10 days,120000,Pending
+prediction,Maintenance Prediction,Predictive maintenance suggests servicing 2 aircraft next week,Medium,Important,B737 (1),Serviced,Next 7-10 days,120000,Pending
+efficiency,Ground Staff Allocation,AI recommends adjusting ground staff shifts for peak hours,Medium,Important,120,156,Next Week,28000,Active
+efficiency,Ground Staff Allocation,AI recommends adjusting ground staff shifts for peak hours,Medium,Important,68%,85%,Next Week,28000,Active
+efficiency,Ground Staff Allocation,AI recommends adjusting ground staff shifts for peak hours,Medium,Important,06:00-10:00,06:00-10:00,Next Week,28000,Active
+efficiency,Ground Staff Allocation,AI recommends adjusting ground staff shifts for peak hours,Medium,Important,16:00-20:00,16:00-20:00,Next Week,28000,Active 
