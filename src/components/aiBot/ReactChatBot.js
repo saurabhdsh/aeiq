@@ -310,6 +310,83 @@ const styles = {
   }
 };
 
+// Add flight delay/cancellation scenario data
+const FLIGHT_DISRUPTION_DATA = {
+  flightData: [
+    {
+      flightNumber: "BA205",
+      origin: "London (LHR)",
+      destination: "New York (JFK)",
+      scheduledDeparture: "14:30",
+      status: "Delayed (2 hours)",
+      reason: "Technical issue with navigation system",
+      aircraft: "Boeing 777-300ER"
+    },
+    {
+      flightNumber: "UA189",
+      origin: "Chicago (ORD)",
+      destination: "San Francisco (SFO)", 
+      scheduledDeparture: "10:45",
+      status: "Cancelled",
+      reason: "Crew availability issues",
+      aircraft: "Boeing 787-9"
+    },
+    {
+      flightNumber: "LH492",
+      origin: "Frankfurt (FRA)",
+      destination: "Dubai (DXB)",
+      scheduledDeparture: "22:15",
+      status: "Delayed (90 mins)",
+      reason: "Late arrival of inbound aircraft",
+      aircraft: "Airbus A350-900"
+    }
+  ],
+  cascadingImpacts: {
+    aircraft: [
+      "Aircraft rotation disruption affecting 3 subsequent flights",
+      "Maintenance schedule adjustments required",
+      "Potential overnight parking issues at destination"
+    ],
+    crew: [
+      "Flight duty time limitations may be exceeded for 2 crew members",
+      "Crew connection to flight LH219 at risk",
+      "Rest period requirements may not be met for return leg"
+    ],
+    passengers: [
+      "142 passengers with connecting flights affected",
+      "Overnight accommodation needed for 86 passengers",
+      "Rebooking required for 27 premium passengers"
+    ],
+    operations: [
+      "Gate reassignment required at destination",
+      "Ground staff overtime required for late arrival handling",
+      "Slot time penalties may apply at congested destination airport"
+    ]
+  },
+  recommendations: {
+    immediate: [
+      "Swap aircraft with flight BA209 (currently on ground with 3-hour turnaround window)",
+      "Deploy standby crew to prevent duty time violations",
+      "Proactively rebook affected connecting passengers onto partner airline flights"
+    ],
+    shortTerm: [
+      "Adjust crew rosters to prevent impact on tomorrow's operations",
+      "Reallocate ground resources to expedite aircraft turnaround",
+      "Prioritize high-value connecting passengers for rebooking"
+    ],
+    passengerHandling: [
+      "Issue meal vouchers for delays exceeding 2 hours",
+      "Prepare dedicated customer service desk for affected connecting passengers",
+      "Fast-track security and immigration for tight connections"
+    ],
+    resourceOptimization: [
+      "Implement reduced turnaround protocol to recover schedule",
+      "Negotiate slot time adjustment with destination airport authority",
+      "Optimize catering to reduce ground time"
+    ]
+  }
+};
+
 function ReactChatBot() {
   // Set up state
   const [isOpen, setIsOpen] = useState(false);
@@ -325,14 +402,136 @@ function ReactChatBot() {
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef(null);
+  const [conversationState, setConversationState] = useState({
+    inDisruptionFlow: false,
+    currentDisruptionStep: null,
+    selectedFlight: null,
+    hasAskedForRecommendations: false,
+    hasProvidedRecommendations: false
+  });
+  
+  // Add state for recommendation deployment
+  const [showDeploymentModal, setShowDeploymentModal] = useState(false);
+  const [deploymentStatus, setDeploymentStatus] = useState({
+    phase: 'pending',
+    currentStep: 0,
+    totalSteps: 5
+  });
+  
+  // Handle recommendation deployment
+  const handleDeployRecommendations = () => {
+    setShowDeploymentModal(true);
+    
+    // Track each step of the deployment process
+    const stepTimings = [
+      { step: 1, delay: 500 },  // Connecting to Sabre CMS
+      { step: 2, delay: 1500 }, // Validating crew schedules
+      { step: 3, delay: 2500 }, // Updating flight systems
+      { step: 4, delay: 3500 }, // Preparing passenger communications
+      { step: 5, delay: 5000 }, // Optimizing ground operations
+      { step: 6, delay: 6500 }  // Finalizing and notifying teams
+    ];
+    
+    // Simulate deployment process with animations - longer step-by-step sequence
+    setDeploymentStatus({
+      phase: 'in-progress',
+      currentStep: 1,
+      totalSteps: stepTimings.length - 1
+    });
+    
+    // Simulate steps progression with appropriate delays
+    stepTimings.forEach(({ step, delay }) => {
+      setTimeout(() => {
+        if (step < stepTimings.length) {
+          setDeploymentStatus({
+            phase: 'in-progress',
+            currentStep: step,
+            totalSteps: stepTimings.length - 1
+          });
+        } else {
+          // Final step - complete
+          setDeploymentStatus({
+            phase: 'complete',
+            currentStep: step,
+            totalSteps: stepTimings.length - 1
+          });
+        }
+      }, delay);
+    });
+  };
+  
+  // Close the deployment modal
+  const handleCloseDeploymentModal = () => {
+    setShowDeploymentModal(false);
+    setDeploymentStatus({
+      phase: 'pending',
+      currentStep: 0,
+      totalSteps: 5
+    });
+    
+    // Add completion message to chat
+    setChatHistory(prev => [
+      ...prev,
+      {
+        role: 'bot',
+        content: 'Recommendations successfully deployed! All steps have been completed: Sabre CMS has been updated with new crew assignments, flight systems have been synchronized, passenger notifications have been queued, and ground operations have been optimized. Operations team has been notified and all contingency plans are now in effect. Real-time monitoring of this disruption is now active.',
+        timestamp: new Date()
+      }
+    ]);
+  };
   
   // Generate a response based on user message
   const generateResponse = (userMessage) => {
     setIsTyping(true);
     
+    // Extract potential flight numbers first - we'll use this in multiple places
+    const flightMatches = userMessage.match(/[A-Z]{2}\d{3,4}/g);
+    let detectedFlight = null;
+    
+    if (flightMatches && flightMatches.length > 0) {
+      // Try to match with our sample data
+      detectedFlight = FLIGHT_DISRUPTION_DATA.flightData.find(
+        f => f.flightNumber === flightMatches[0]
+      );
+    }
+    
     // Determine which category the message belongs to
     let responseCategory = 'operations'; // default
     const lowerCaseMessage = userMessage.toLowerCase();
+    
+    // Direct flight number entry - prioritize this over other checks
+    if (detectedFlight) {
+      setConversationState(prev => ({
+        ...prev, 
+        inDisruptionFlow: true,
+        currentDisruptionStep: 'flightIdentified',
+        selectedFlight: detectedFlight
+      }));
+      
+      handleAnimatedTyping([
+        `Looking up details for flight ${detectedFlight.flightNumber}...`,
+        `Flight ${detectedFlight.flightNumber} from ${detectedFlight.origin} to ${detectedFlight.destination} is ${detectedFlight.status} due to: ${detectedFlight.reason}.`,
+        `Would you like me to provide recommendations for managing the impacts of this disruption?`
+      ]);
+      return;
+    }
+    
+    // Check if we're in an active disruption conversation flow
+    if (conversationState.inDisruptionFlow) {
+      handleDisruptionFlow(lowerCaseMessage);
+      return;
+    }
+    
+    // If we've previously exited a disruption flow, ensure all states are reset
+    if (conversationState.currentDisruptionStep !== null || conversationState.selectedFlight !== null) {
+      setConversationState({
+        inDisruptionFlow: false,
+        currentDisruptionStep: null,
+        selectedFlight: null,
+        hasAskedForRecommendations: false,
+        hasProvidedRecommendations: false
+      });
+    }
     
     // Check for greetings first
     const greetingWords = ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 'howdy'];
@@ -344,6 +543,33 @@ function ReactChatBot() {
       return;
     }
     
+    // Detect flight delay/cancellation queries
+    const disruptionKeywords = ['delay', 'delayed', 'cancel', 'cancelled', 'disruption', 'issue'];
+    const flightKeywords = ['flight', 'aircraft', 'plane', 'connection'];
+    
+    if (disruptionKeywords.some(word => lowerCaseMessage.includes(word)) && 
+        flightKeywords.some(word => lowerCaseMessage.includes(word))) {
+      
+      // General disruption query, offer flight selection
+      setConversationState(prev => ({
+        ...prev,
+        inDisruptionFlow: true,
+        currentDisruptionStep: 'selectFlight'
+      }));
+      
+      const flightOptions = FLIGHT_DISRUPTION_DATA.flightData.map(
+        f => `${f.flightNumber}: ${f.origin} to ${f.destination} - ${f.status}`
+      ).join('\n• ');
+      
+      handleAnimatedTyping([
+        'Checking disrupted flights...',
+        'I found several flights with current disruptions. Which one are you inquiring about?',
+        `• ${flightOptions}\n\nPlease specify the flight number you're interested in.`
+      ]);
+      return;
+    }
+    
+    // Continue with other categories...
     if (lowerCaseMessage.includes('crew') && lowerCaseMessage.includes('gate')) {
       responseCategory = 'gate_crew';
     } else if (lowerCaseMessage.includes('delay') || 
@@ -458,8 +684,158 @@ function ReactChatBot() {
     handleAnimatedTyping([...intermediateMessages, finalResponse]);
   };
 
+  // Handler for the disruption conversation flow
+  const handleDisruptionFlow = (userMessage) => {
+    const lowerCaseMessage = userMessage.toLowerCase();
+    
+    // Check for direct flight number entry first
+    const flightMatches = userMessage.match(/[A-Z]{2}\d{3,4}/g);
+    
+    if (flightMatches && flightMatches.length > 0) {
+      const selectedFlight = FLIGHT_DISRUPTION_DATA.flightData.find(
+        f => f.flightNumber === flightMatches[0]
+      );
+      
+      if (selectedFlight) {
+        setConversationState(prev => ({
+          ...prev,
+          currentDisruptionStep: 'flightIdentified',
+          selectedFlight: selectedFlight
+        }));
+        
+        handleAnimatedTyping([
+          `Looking up details for flight ${selectedFlight.flightNumber}...`,
+          `Flight ${selectedFlight.flightNumber} from ${selectedFlight.origin} to ${selectedFlight.destination} is ${selectedFlight.status} due to: ${selectedFlight.reason}.`,
+          `Would you like me to provide recommendations for managing the impacts of this disruption?`
+        ]);
+        return;
+      }
+    }
+    
+    // If no direct flight number match, continue with conversation flow
+    switch (conversationState.currentDisruptionStep) {
+      case 'selectFlight':
+        // Already handled above with the direct flight check
+        // This is a fallback if no flight number format was detected
+        handleAnimatedTyping([
+          'I need a specific flight number to provide detailed information.',
+          'Please specify which flight you want information about (e.g., "BA205").'
+        ]);
+        return;
+        
+      case 'flightIdentified':
+        // User has seen flight info, check if they want recommendations
+        const affirmativeWords = ['yes', 'yeah', 'sure', 'okay', 'please', 'recommend', 'help', 'options'];
+        const negativeWords = ['no', 'nope', 'later', 'not now', 'don\'t', 'stop'];
+        
+        if (affirmativeWords.some(word => lowerCaseMessage.includes(word))) {
+          setConversationState(prev => ({
+            ...prev,
+            currentDisruptionStep: 'providingImpacts',
+            hasAskedForRecommendations: true
+          }));
+          
+          // Show cascading impacts first
+          const { aircraft, crew, passengers, operations } = FLIGHT_DISRUPTION_DATA.cascadingImpacts;
+          
+          handleAnimatedTyping([
+            'Analyzing potential impacts...',
+            'Here are the cascading impacts of this disruption:',
+            `**Aircraft Impacts:**\n• ${aircraft.join('\n• ')}\n\n**Crew Impacts:**\n• ${crew.join('\n• ')}\n\n**Passenger Impacts:**\n• ${passengers.join('\n• ')}\n\n**Operational Impacts:**\n• ${operations.join('\n• ')}\n\nWould you like to see AI-recommended actions to mitigate these impacts?`
+          ]);
+          return;
+        } else if (negativeWords.some(word => lowerCaseMessage.includes(word))) {
+          // User doesn't want recommendations
+          setConversationState(prev => ({
+            ...prev,
+            inDisruptionFlow: false,
+            currentDisruptionStep: null
+          }));
+          
+          handleAnimatedTyping([
+            'Understood.',
+            'Let me know if you need any other information about flights, crew, or operations.'
+          ]);
+          return;
+        } else {
+          // Unclear response
+          handleAnimatedTyping([
+            "I'm not sure if you want recommendations.",
+            'Would you like me to provide recommendations for handling this flight disruption? Please answer with yes or no.'
+          ]);
+          return;
+        }
+        
+      case 'providingImpacts':
+        // User has seen impacts, check if they want recommendations
+        const wantRecommendations = ['yes', 'yeah', 'sure', 'okay', 'recommend', 'suggestions', 'actions', 'help'].some(
+          word => lowerCaseMessage.includes(word)
+        );
+        
+        if (wantRecommendations) {
+          setConversationState(prev => ({
+            ...prev,
+            currentDisruptionStep: 'recommendationsProvided',
+            hasProvidedRecommendations: true
+          }));
+          
+          // Provide detailed recommendations
+          const { immediate, shortTerm, passengerHandling, resourceOptimization } = FLIGHT_DISRUPTION_DATA.recommendations;
+          
+          handleAnimatedTyping([
+            'Generating AI recommendations...',
+            'Computing optimal solutions...',
+            `**Immediate Actions:**\n• ${immediate.join('\n• ')}\n\n**Short-term Planning:**\n• ${shortTerm.join('\n• ')}\n\n**Passenger Handling:**\n• ${passengerHandling.join('\n• ')}\n\n**Resource Optimization:**\n• ${resourceOptimization.join('\n• ')}\n\nWould you like me to explain any of these recommendations in more detail?`
+          ], true);
+          return;
+        } else {
+          // User doesn't want recommendations
+          setConversationState(prev => ({
+            ...prev,
+            inDisruptionFlow: false,
+            currentDisruptionStep: null
+          }));
+          
+          handleAnimatedTyping([
+            'Understood.',
+            'Is there anything else you would like to know about this flight or other operations?'
+          ]);
+          return;
+        }
+        
+      case 'recommendationsProvided':
+        // After providing recommendations, offer to exit the flow
+        setConversationState(prev => ({
+          ...prev,
+          inDisruptionFlow: false,
+          currentDisruptionStep: null
+        }));
+        
+        handleAnimatedTyping([
+          'Processing your request...',
+          'I hope these recommendations are helpful for managing the flight disruption.',
+          'Is there anything else you would like to know about flight operations or other services?'
+        ]);
+        return;
+        
+      default:
+        // Reset the flow if we reach an unknown state
+        setConversationState(prev => ({
+          ...prev,
+          inDisruptionFlow: false,
+          currentDisruptionStep: null
+        }));
+        
+        handleAnimatedTyping([
+          'I appear to have lost track of our conversation.',
+          'How else can I assist you with flight operations today?'
+        ]);
+        return;
+    }
+  };
+
   // Helper function for animated typing effect
-  const handleAnimatedTyping = (messages) => {
+  const handleAnimatedTyping = (messages, includeButton = false) => {
     if (!messages || messages.length === 0) return;
     
     // Show first intermediate message
@@ -470,7 +846,8 @@ function ReactChatBot() {
           role: 'bot',
           content: messages[0],
           timestamp: new Date(),
-          isTyping: true
+          isTyping: true,
+          includeDeployButton: includeButton
         }
       ]);
       
@@ -499,7 +876,8 @@ function ReactChatBot() {
                   newHistory[lastIndex] = {
                     role: 'bot',
                     content: messages[2],
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    includeDeployButton: includeButton
                   };
                 }
                 return newHistory;
@@ -589,6 +967,30 @@ function ReactChatBot() {
 
   // Suggestions section
   const renderSuggestions = () => {
+    let suggestionList = [...SUGGESTIONS];
+    
+    // Add context-specific suggestions based on conversation state
+    if (conversationState.inDisruptionFlow) {
+      switch (conversationState.currentDisruptionStep) {
+        case 'selectFlight':
+          suggestionList = ["BA205", "UA189", "LH492"];
+          break;
+        case 'flightIdentified':
+          suggestionList = ["Yes, show me the impacts", "No, thank you"];
+          break;
+        case 'providingImpacts':
+          suggestionList = ["Show recommendations", "No recommendations needed"];
+          break;
+        case 'recommendationsProvided':
+          suggestionList = ["Thank you", "Tell me about another flight", "Check crew impacts"];
+          break;
+        default:
+          // Keep default suggestions
+          break;
+      }
+    }
+    
+    // Existing render logic with updated suggestions
     return React.createElement('div', { style: styles.suggestionsContainer }, [
       React.createElement('div', { 
         style: {
@@ -608,7 +1010,7 @@ function ReactChatBot() {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            color: '#4F46E5'
+            color: COLORS.primary
           }
         }, 
           showSuggestions 
@@ -624,7 +1026,7 @@ function ReactChatBot() {
           animation: 'fadeIn 0.3s ease'
         }
       }, 
-        SUGGESTIONS.map((suggestion, index) => 
+        suggestionList.slice(0, 4).map((suggestion, index) => 
           React.createElement('button', {
             key: index,
             style: styles.suggestionChip,
@@ -685,6 +1087,34 @@ function ReactChatBot() {
               }
             }, [
               React.createElement('div', null, msg.content),
+              msg.includeDeployButton && React.createElement('div', {
+                style: {
+                  marginTop: '15px',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }
+              }, 
+                React.createElement('button', {
+                  onClick: handleDeployRecommendations,
+                  style: {
+                    backgroundColor: COLORS.primary,
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+                    transition: 'all 0.2s ease'
+                  }
+                }, [
+                  React.createElement('span', null, 'Deploy Recommendations'),
+                  React.createElement(ArrowRight, { size: 14, color: 'white' })
+                ])
+              ),
               React.createElement('div', { style: styles.timestamp }, formatTime(msg.timestamp))
             ])
           ]);
@@ -776,6 +1206,18 @@ function ReactChatBot() {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      @keyframes slideUp {
+        from { transform: translateY(20px); }
+        to { transform: translateY(0); }
+      }
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
     `;
     document.head.appendChild(style);
     
@@ -788,7 +1230,425 @@ function ReactChatBot() {
   return React.createElement(React.Fragment, null, [
     !isOpen && !isMinimized && renderOpenButton(),
     isMinimized && renderMinimizedChat(),
-    isOpen && !isMinimized && renderChatInterface()
+    isOpen && !isMinimized && renderChatInterface(),
+    
+    // Deployment modal
+    showDeploymentModal && React.createElement('div', {
+      style: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2000,
+        backdropFilter: 'blur(3px)',
+        WebkitBackdropFilter: 'blur(3px)',
+        animation: 'fadeIn 0.3s ease'
+      }
+    }, 
+      React.createElement('div', {
+        style: {
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          width: '450px',
+          maxWidth: '90%',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          animation: 'fadeIn 0.3s ease, slideUp 0.3s ease',
+          overflow: 'hidden'
+        }
+      }, [
+        // Modal header
+        React.createElement('div', {
+          style: {
+            backgroundColor: COLORS.primary,
+            padding: '20px',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryMedium} 100%)`
+          }
+        }, [
+          React.createElement('h3', {
+            style: {
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }
+          }, [
+            React.createElement(Sparkles, { size: 20 }),
+            'Deploying AI Recommendations'
+          ]),
+          deploymentStatus.phase === 'complete' && React.createElement('button', {
+            onClick: handleCloseDeploymentModal,
+            style: {
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer'
+            }
+          }, React.createElement(X, { size: 20 }))
+        ]),
+        
+        // Modal content
+        React.createElement('div', {
+          style: {
+            padding: '30px'
+          }
+        }, [
+          React.createElement('div', {
+            style: {
+              textAlign: 'center'
+            }
+          }, [
+            // Status indicator
+            deploymentStatus.phase === 'in-progress' ? 
+              React.createElement('div', {
+                style: {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '20px'
+                }
+              }, [
+                React.createElement('div', {
+                  style: {
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    border: '3px solid rgba(16, 185, 129, 0.1)',
+                    borderTopColor: COLORS.primary,
+                    animation: 'rotate 1.5s linear infinite'
+                  }
+                }),
+                React.createElement('div', {
+                  style: {
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: COLORS.darkText
+                  }
+                }, 'Deploying recommendations...'),
+                React.createElement('div', {
+                  style: {
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    marginTop: '-10px'
+                  }
+                }, `Step ${deploymentStatus.currentStep} of ${deploymentStatus.totalSteps}`),
+                React.createElement('div', {
+                  style: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    gap: '12px',
+                    marginTop: '15px'
+                  }
+                }, [
+                  // Step 1
+                  React.createElement('div', {
+                    style: {
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      opacity: deploymentStatus.currentStep >= 1 ? 1 : 0.5
+                    }
+                  }, [
+                    React.createElement('div', {
+                      style: {
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: deploymentStatus.currentStep >= 1 ? COLORS.primary : '#d1d5db',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        animation: deploymentStatus.currentStep === 1 ? 'pulse 1s infinite' : 'none'
+                      }
+                    }, deploymentStatus.currentStep > 1 ? '✓' : '1'),
+                    React.createElement('div', {
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }
+                    }, [
+                      React.createElement('span', {
+                        style: {
+                          fontWeight: deploymentStatus.currentStep === 1 ? 'bold' : 'normal'
+                        }
+                      }, 'Connecting to Sabre CMS'),
+                      deploymentStatus.currentStep === 1 && React.createElement('span', {
+                        style: {
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }
+                      }, 'Establishing secure connection to crew management system...')
+                    ])
+                  ]),
+                  
+                  // Step 2
+                  React.createElement('div', {
+                    style: {
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      opacity: deploymentStatus.currentStep >= 2 ? 1 : 0.5
+                    }
+                  }, [
+                    React.createElement('div', {
+                      style: {
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: deploymentStatus.currentStep >= 2 ? COLORS.primary : '#d1d5db',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        animation: deploymentStatus.currentStep === 2 ? 'pulse 1s infinite' : 'none'
+                      }
+                    }, deploymentStatus.currentStep > 2 ? '✓' : '2'),
+                    React.createElement('div', {
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }
+                    }, [
+                      React.createElement('span', {
+                        style: {
+                          fontWeight: deploymentStatus.currentStep === 2 ? 'bold' : 'normal'
+                        }
+                      }, 'Validating Crew Schedules'),
+                      deploymentStatus.currentStep === 2 && React.createElement('span', {
+                        style: {
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }
+                      }, 'Checking duty time limits and standby availability...')
+                    ])
+                  ]),
+                  
+                  // Step 3
+                  React.createElement('div', {
+                    style: {
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      opacity: deploymentStatus.currentStep >= 3 ? 1 : 0.5
+                    }
+                  }, [
+                    React.createElement('div', {
+                      style: {
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: deploymentStatus.currentStep >= 3 ? COLORS.primary : '#d1d5db',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        animation: deploymentStatus.currentStep === 3 ? 'pulse 1s infinite' : 'none'
+                      }
+                    }, deploymentStatus.currentStep > 3 ? '✓' : '3'),
+                    React.createElement('div', {
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }
+                    }, [
+                      React.createElement('span', {
+                        style: {
+                          fontWeight: deploymentStatus.currentStep === 3 ? 'bold' : 'normal'
+                        }
+                      }, 'Updating Flight Systems'),
+                      deploymentStatus.currentStep === 3 && React.createElement('span', {
+                        style: {
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }
+                      }, 'Synchronizing with aircraft scheduling systems...')
+                    ])
+                  ]),
+                  
+                  // Step 4
+                  React.createElement('div', {
+                    style: {
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      opacity: deploymentStatus.currentStep >= 4 ? 1 : 0.5
+                    }
+                  }, [
+                    React.createElement('div', {
+                      style: {
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: deploymentStatus.currentStep >= 4 ? COLORS.primary : '#d1d5db',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        animation: deploymentStatus.currentStep === 4 ? 'pulse 1s infinite' : 'none'
+                      }
+                    }, deploymentStatus.currentStep > 4 ? '✓' : '4'),
+                    React.createElement('div', {
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }
+                    }, [
+                      React.createElement('span', {
+                        style: {
+                          fontWeight: deploymentStatus.currentStep === 4 ? 'bold' : 'normal'
+                        }
+                      }, 'Preparing Passenger Communications'),
+                      deploymentStatus.currentStep === 4 && React.createElement('span', {
+                        style: {
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }
+                      }, 'Generating customized passenger notifications...')
+                    ])
+                  ]),
+                  
+                  // Step 5
+                  React.createElement('div', {
+                    style: {
+                      fontSize: '14px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      opacity: deploymentStatus.currentStep >= 5 ? 1 : 0.5
+                    }
+                  }, [
+                    React.createElement('div', {
+                      style: {
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: deploymentStatus.currentStep >= 5 ? COLORS.primary : '#d1d5db',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        animation: deploymentStatus.currentStep === 5 ? 'pulse 1s infinite' : 'none'
+                      }
+                    }, deploymentStatus.currentStep > 5 ? '✓' : '5'),
+                    React.createElement('div', {
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }
+                    }, [
+                      React.createElement('span', {
+                        style: {
+                          fontWeight: deploymentStatus.currentStep === 5 ? 'bold' : 'normal'
+                        }
+                      }, 'Optimizing Ground Operations'),
+                      deploymentStatus.currentStep === 5 && React.createElement('span', {
+                        style: {
+                          fontSize: '12px',
+                          color: '#6b7280'
+                        }
+                      }, 'Adjusting gate assignments and ground staffing...')
+                    ])
+                  ])
+                ])
+              ])
+              :
+              React.createElement('div', {
+                style: {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '20px'
+                }
+              }, [
+                React.createElement('div', {
+                  style: {
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: COLORS.primary
+                  }
+                }, React.createElement('div', {
+                  style: {
+                    fontSize: '40px',
+                    fontWeight: 'bold'
+                  }
+                }, '✓')),
+                React.createElement('div', {
+                  style: {
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: COLORS.darkText
+                  }
+                }, 'Deployment Complete!'),
+                React.createElement('div', {
+                  style: {
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    maxWidth: '90%',
+                    margin: '0 auto',
+                    textAlign: 'left',
+                    lineHeight: '1.5'
+                  }
+                }, [
+                  React.createElement('p', {
+                    style: { marginBottom: '12px' }
+                  }, 'All recommendations have been successfully deployed through our integrated systems:'),
+                  React.createElement('ul', {
+                    style: {
+                      paddingLeft: '20px',
+                      marginBottom: '12px'
+                    }
+                  }, [
+                    React.createElement('li', null, 'Sabre CMS has been updated with crew reassignments'),
+                    React.createElement('li', null, 'Flight scheduling system synchronized with new times'),
+                    React.createElement('li', null, 'Passenger notifications queued for delivery'),
+                    React.createElement('li', null, 'Ground operations optimized for disruption handling'),
+                    React.createElement('li', null, 'Operations team notified with detailed action plan')
+                  ]),
+                  React.createElement('p', null, 'Real-time monitoring of this disruption is now active.')
+                ]),
+                React.createElement('button', {
+                  onClick: handleCloseDeploymentModal,
+                  style: {
+                    backgroundColor: COLORS.primary,
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    marginTop: '10px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                  }
+                }, 'Close')
+              ])
+          ])
+        ])
+      ])
+    )
   ]);
 }
 
