@@ -226,6 +226,24 @@ const CrewManagementSystem = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       setCmsStatus('connected');
       setStatusMessage('Connected');
+      
+      // Simulate fetching crew schedules with realistic names and roles
+      const schedules = Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1,
+        name: crewNames[i],
+        role: groundStaffRoles[i],
+        schedules: Array.from({ length: 5 }, (_, j) => ({
+          date: new Date(Date.now() + (j + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          flights: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, k) => ({
+            flightNumber: `FL${Math.floor(Math.random() * 1000)}`,
+            departure: `${Math.floor(Math.random() * 24)}:00`,
+            arrival: `${Math.floor(Math.random() * 24)}:00`,
+            route: ['JFK-LHR', 'LAX-SYD', 'DXB-SIN', 'HKG-NRT'][Math.floor(Math.random() * 4)],
+            criticality: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)]
+          }))
+        }))
+      }));
+      setCrewSchedules(schedules);
     } catch (error) {
       setCmsStatus('error');
       setStatusMessage('Connection failed');

@@ -38,8 +38,8 @@ const MetricCard = ({ title, value, icon: Icon, trend, color }) => {
 };
 
 const SimpleBarChart = ({ data }) => {
-  const maxValue = Math.max(...(data || []).map(d => Math.max(d.onTime || 0, d.fuel || 0, d.crew || 0)));
-  const scale = maxValue > 0 ? 100 / maxValue : 1;
+  const maxValue = Math.max(...data.map(d => Math.max(d.onTime, d.fuel, d.crew)));
+  const scale = 100 / maxValue;
 
   return (
     <div style={{ paddingTop: "24px" }}>
@@ -102,7 +102,7 @@ const SimpleBarChart = ({ data }) => {
           height: "160px",
           gap: "8px"
         }}>
-          {(data || []).map((day, i) => (
+          {data.map((day, i) => (
             <div key={i} style={{ flex: "1", display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ 
                 width: "100%", 
@@ -116,7 +116,7 @@ const SimpleBarChart = ({ data }) => {
                     backgroundColor: "var(--primary)", 
                     borderTopLeftRadius: "2px", 
                     borderTopRightRadius: "2px",
-                    height: `${(day.onTime || 0) * scale}px` 
+                    height: `${day.onTime * scale}px` 
                   }}
                 ></div>
                 <div 
@@ -125,7 +125,7 @@ const SimpleBarChart = ({ data }) => {
                     backgroundColor: "var(--success)", 
                     borderTopLeftRadius: "2px", 
                     borderTopRightRadius: "2px",
-                    height: `${(day.fuel || 0) * scale}px` 
+                    height: `${day.fuel * scale}px` 
                   }}
                 ></div>
                 <div 
@@ -134,7 +134,7 @@ const SimpleBarChart = ({ data }) => {
                     backgroundColor: "var(--secondary)", 
                     borderTopLeftRadius: "2px", 
                     borderTopRightRadius: "2px",
-                    height: `${(day.crew || 0) * scale}px` 
+                    height: `${day.crew * scale}px` 
                   }}
                 ></div>
               </div>
@@ -148,7 +148,7 @@ const SimpleBarChart = ({ data }) => {
 };
 
 const OperationalMetrics = ({ metrics }) => {
-  // Enhanced state for AI visualization
+  // Add state for AI visualization
   const [showAIVisualization, setShowAIVisualization] = useState(false);
   const [aiSimulationState, setAiSimulationState] = useState('idle'); // idle, running, complete
   const [aiInsights, setAiInsights] = useState([]);
@@ -156,23 +156,27 @@ const OperationalMetrics = ({ metrics }) => {
   const [optimizationProgress, setOptimizationProgress] = useState(0);
   const [selectedMetric, setSelectedMetric] = useState(null);
   
-  // AI Simulation effect
+  // AI Visualization simulation effect
   useEffect(() => {
     if (aiSimulationState === 'running') {
       // Simulate AI processing
       const insightData = [
-        { id: 1, title: 'Crew Schedule Optimization', description: 'Analyzing patterns in crew fatigue and aircraft turnaround times' },
-        { id: 2, title: 'Weather Pattern Analysis', description: 'Detecting weather anomalies affecting flight paths' },
-        { id: 3, title: 'Maintenance Prediction', description: 'Predicting optimal maintenance scheduling to minimize disruptions' },
+        { id: 1, type: 'pattern', title: 'Crew Schedule Optimization', description: 'Analyzing patterns in crew fatigue and aircraft turnaround times' },
+        { id: 2, type: 'anomaly', title: 'Weather Pattern Analysis', description: 'Detecting weather anomalies affecting flight paths' },
+        { id: 3, type: 'prediction', title: 'Maintenance Prediction', description: 'Predicting optimal maintenance scheduling to minimize disruptions' },
+        { id: 4, type: 'optimization', title: 'Fuel Route Optimization', description: 'Optimizing flight routes based on real-time weather conditions' },
+        { id: 5, type: 'recommendation', title: 'Gate Assignment', description: 'Recommending optimal gate assignments to reduce taxiing time' }
       ];
       
       const optimizations = [
         { id: 1, title: 'Crew Schedule Optimization', value: '+4.2%', impact: 'HIGH', category: 'Crew' },
         { id: 2, title: 'Fuel Route Optimization', value: '+3.7%', impact: 'HIGH', category: 'Fuel' },
         { id: 3, title: 'Maintenance Schedule Refinement', value: '+2.1%', impact: 'MEDIUM', category: 'Maintenance' },
+        { id: 4, title: 'Gate Allocation Improvement', value: '+1.8%', impact: 'MEDIUM', category: 'Gate' },
+        { id: 5, title: 'Load Factor Enhancement', value: '+3.2%', impact: 'HIGH', category: 'Load' }
       ];
 
-      // Show insights with delays
+      // Show insights one by one with delays
       let currentInsights = [];
       const insightTimers = insightData.map((insight, index) => {
         return setTimeout(() => {
@@ -184,7 +188,7 @@ const OperationalMetrics = ({ metrics }) => {
         }, 800 * (index + 1));
       });
       
-      // After insights, show optimizations
+      // After insights, start showing optimizations one by one
       const completionTimer = setTimeout(() => {
         let currentOptimizations = [];
         
@@ -206,7 +210,7 @@ const OperationalMetrics = ({ metrics }) => {
         });
         
         return () => optimizationTimers.forEach(timer => clearTimeout(timer));
-      }, 3000);
+      }, 5000);
       
       return () => {
         insightTimers.forEach(timer => clearTimeout(timer));
@@ -214,7 +218,7 @@ const OperationalMetrics = ({ metrics }) => {
       };
     }
   }, [aiSimulationState]);
-  
+
   // AI Visualization component
   const AIVisualization = () => {
     const canvasRef = useRef(null);
@@ -227,12 +231,13 @@ const OperationalMetrics = ({ metrics }) => {
       const width = canvas.width;
       const height = canvas.height;
       
-      // Create particles for visualization
+      // Particles for the visualization
       const particles = [];
       const connections = [];
       const nodeSize = 4;
-      const numParticles = 40;
+      const numParticles = 60;
       
+      // Create random particles
       for (let i = 0; i < numParticles; i++) {
         particles.push({
           x: Math.random() * width,
@@ -240,8 +245,8 @@ const OperationalMetrics = ({ metrics }) => {
           vx: (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.5,
           color: i < numParticles * 0.7 ? 
-                 'rgba(79, 70, 229, 0.6)' : 
-                 'rgba(16, 185, 129, 0.8)'
+                 'rgba(79, 70, 229, 0.6)' : // Primary (indigo) for most nodes
+                 'rgba(16, 185, 129, 0.8)'  // Green for "special" nodes
         });
       }
       
@@ -298,6 +303,32 @@ const OperationalMetrics = ({ metrics }) => {
           ctx.fill();
         }
         
+        // Pulse animation for the central node
+        const time = Date.now() / 1000;
+        const pulseSize = nodeSize * 1.5 + Math.sin(time * 4) * nodeSize * 0.5;
+        
+        // Draw central node (larger and pulsing)
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, pulseSize, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+        ctx.fill();
+        
+        // Draw pulse waves from central node
+        const numWaves = 3;
+        for (let i = 0; i < numWaves; i++) {
+          const waveTime = (time + i * 0.5) % 2;
+          const waveSize = waveTime * 80; // Max radius of the pulse
+          const waveOpacity = 1 - waveTime / 2;
+          
+          if (waveSize > 0) {
+            ctx.beginPath();
+            ctx.arc(width / 2, height / 2, waveSize, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(16, 185, 129, ${waveOpacity * 0.5})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+        
         requestAnimationFrame(animate);
       };
       
@@ -310,8 +341,9 @@ const OperationalMetrics = ({ metrics }) => {
       <div style={{ 
         backgroundColor: 'rgba(244, 247, 252, 0.8)', 
         borderRadius: '8px', 
+        overflow: 'hidden', 
         marginTop: '20px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.03)'
       }}>
         <div style={{ 
           backgroundColor: '#4F46E5', 
@@ -342,7 +374,7 @@ const OperationalMetrics = ({ metrics }) => {
                   alignItems: 'center'
                 }}
               >
-                <Play size={14} style={{ marginRight: '6px' }} />
+                <Zap size={14} style={{ marginRight: '6px' }} />
                 Run Simulation
               </button>
             )}
@@ -387,15 +419,16 @@ const OperationalMetrics = ({ metrics }) => {
         <div style={{ 
           padding: '20px', 
           display: 'flex',
-          minHeight: '220px'
+          position: 'relative',
+          minHeight: '300px'
         }}>
-          {/* Visualization area */}
+          {/* Network visualization */}
           <div style={{ flex: '1', position: 'relative' }}>
             {aiSimulationState === 'running' && (
               <canvas 
                 ref={canvasRef} 
                 width={400} 
-                height={180}
+                height={280}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -406,213 +439,128 @@ const OperationalMetrics = ({ metrics }) => {
               />
             )}
             
-            {/* Idle state */}
-            {aiSimulationState === 'idle' && (
-              <div style={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                justifyContent: 'center', 
-                alignItems: 'center'
-              }}>
-                <div style={{ 
-                  width: '60px', 
-                  height: '60px', 
-                  borderRadius: '50%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                  marginBottom: '16px'
-                }}>
-                  <Brain size={24} style={{ color: '#4F46E5' }} />
-                </div>
-                <h3 style={{ 
-                  fontSize: '16px', 
-                  marginBottom: '8px',
-                  textAlign: 'center'
-                }}>
-                  AI Performance Simulation
-                </h3>
-                <p style={{ 
-                  fontSize: '14px', 
-                  color: 'rgba(107, 114, 128, 1)',
-                  textAlign: 'center',
-                  maxWidth: '300px'
-                }}>
-                  Run the simulation to see optimization insights
-                </p>
-              </div>
-            )}
-            
-            {/* Completed state */}
+            {/* Completed simulation visualization */}
             {aiSimulationState === 'complete' && (
-              <div style={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative'
-              }}>
-                <div style={{ 
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'conic-gradient(#4F46E5 0%, #4F46E5 40%, #10B981 40%, #10B981 70%, #F59E0B 70%, #F59E0B 100%)',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: '15px',
-                  position: 'relative',
-                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+              <div style={{ height: '100%', padding: '10px' }}>
+                <h4 style={{ 
+                  fontSize: '16px', 
+                  fontWeight: '600', 
+                  marginBottom: '15px', 
+                  display: 'flex', 
+                  alignItems: 'center' 
                 }}>
-                  <div style={{
-                    width: '90px',
-                    height: '90px',
+                  <Brain size={16} style={{ marginRight: '8px', color: '#4F46E5' }} />
+                  AI Performance Optimization Results
+                </h4>
+                
+                {/* Radial chart showing optimization impact */}
+                <div style={{ 
+                  height: '250px', 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  position: 'relative'
+                }}>
+                  {/* Central circle with total improvement */}
+                  <div style={{ 
+                    position: 'absolute',
+                    width: '100px',
+                    height: '100px',
                     borderRadius: '50%',
-                    backgroundColor: 'white',
+                    backgroundColor: '#4F46E5',
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    flexDirection: 'column'
+                    color: 'white',
+                    zIndex: 10,
+                    boxShadow: '0 0 20px rgba(79, 70, 229, 0.3)'
                   }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#4F46E5' }}>+15%</div>
-                    <div style={{ fontSize: '10px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Gain</div>
+                    <div style={{ 
+                      fontSize: '24px', 
+                      fontWeight: 'bold', 
+                      lineHeight: '1'
+                    }}>+15.0%</div>
+                    <div style={{ 
+                      fontSize: '12px',
+                      opacity: 0.8,
+                      textAlign: 'center',
+                      padding: '0 5px'
+                    }}>Overall Gain</div>
                   </div>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  maxWidth: '100%',
-                  margin: '0 auto'
-                }}>
-                  {/* Crew Gain */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '10px 15px',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid rgba(79, 70, 229, 0.2)',
-                    animation: 'fadeInScale 0.5s ease forwards',
-                    animationDelay: '0.1s',
-                    opacity: 0,
-                    transform: 'scale(0.9)'
-                  }}>
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: '#4F46E5',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBottom: '6px'
-                    }}>
-                      <Users size={12} color="white" />
-                    </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#4F46E5' }}>+4.2%</div>
-                    <div style={{ fontSize: '12px', color: '#6B7280', textAlign: 'center' }}>Crew Efficiency</div>
-                  </div>
-
-                  {/* Fuel Gain */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '10px 15px',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid rgba(16, 185, 129, 0.2)',
-                    animation: 'fadeInScale 0.5s ease forwards',
-                    animationDelay: '0.3s',
-                    opacity: 0,
-                    transform: 'scale(0.9)'
-                  }}>
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: '#10B981',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBottom: '6px'
-                    }}>
-                      <Gauge size={12} color="white" />
-                    </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#10B981' }}>+3.7%</div>
-                    <div style={{ fontSize: '12px', color: '#6B7280', textAlign: 'center' }}>Fuel Savings</div>
-                  </div>
-
-                  {/* Maintenance Gain */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '10px 15px',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
-                    animation: 'fadeInScale 0.5s ease forwards',
-                    animationDelay: '0.5s',
-                    opacity: 0,
-                    transform: 'scale(0.9)'
-                  }}>
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: '#F59E0B',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBottom: '6px'
-                    }}>
-                      <Wrench size={12} color="white" />
-                    </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#F59E0B' }}>+2.1%</div>
-                    <div style={{ fontSize: '12px', color: '#6B7280', textAlign: 'center' }}>Maintenance</div>
-                  </div>
-
-                  {/* On-Time Gain */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '10px 15px',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid rgba(99, 102, 241, 0.2)',
-                    animation: 'fadeInScale 0.5s ease forwards',
-                    animationDelay: '0.7s',
-                    opacity: 0,
-                    transform: 'scale(0.9)'
-                  }}>
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: '#6366F1',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBottom: '6px'
-                    }}>
-                      <Clock size={12} color="white" />
-                    </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#6366F1' }}>+5.0%</div>
-                    <div style={{ fontSize: '12px', color: '#6B7280', textAlign: 'center' }}>On-Time Perf.</div>
-                  </div>
+                  
+                  {/* Orbiting indicators */}
+                  {[
+                    { color: '#10B981', angle: 30, size: 60, value: '+4.2%', label: 'Crew' },
+                    { color: '#3B82F6', angle: 100, size: 55, value: '+3.7%', label: 'Fuel' },
+                    { color: '#F97316', angle: 170, size: 42, value: '+2.1%', label: 'Maintenance' },
+                    { color: '#8B5CF6', angle: 240, size: 40, value: '+1.8%', label: 'Gate' },
+                    { color: '#EC4899', angle: 310, size: 53, value: '+3.2%', label: 'Load' }
+                  ].map((item, index) => {
+                    // Calculate position on a circle
+                    const radius = 100; // Distance from center
+                    const angleInRadians = (item.angle * Math.PI) / 180;
+                    const x = Math.cos(angleInRadians) * radius;
+                    const y = Math.sin(angleInRadians) * radius;
+                    
+                    return (
+                      <div 
+                        key={index}
+                        style={{
+                          position: 'absolute',
+                          width: `${item.size}px`,
+                          height: `${item.size}px`,
+                          borderRadius: '50%',
+                          backgroundColor: item.color,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          color: 'white',
+                          transform: `translate(${x}px, ${y}px)`,
+                          boxShadow: `0 0 15px ${item.color}80`,
+                          transition: 'all 0.5s ease-out',
+                          animation: `fadeInScale 0.8s ease-out ${index * 0.2}s both`
+                        }}
+                      >
+                        <div style={{ fontSize: `${item.size * 0.35}px`, fontWeight: 'bold', lineHeight: '1' }}>{item.value}</div>
+                        <div style={{ fontSize: `${item.size * 0.17}px`, opacity: 0.9 }}>{item.label}</div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Connection lines */}
+                  <svg 
+                    style={{ 
+                      position: 'absolute', 
+                      width: '100%', 
+                      height: '100%', 
+                      zIndex: -1 
+                    }}
+                    viewBox="-150 -150 300 300"
+                  >
+                    {[30, 100, 170, 240, 310].map((angle, index) => {
+                      const angleInRadians = (angle * Math.PI) / 180;
+                      const x = Math.cos(angleInRadians) * 100;
+                      const y = Math.sin(angleInRadians) * 100;
+                      
+                      return (
+                        <line 
+                          key={index}
+                          x1="0" 
+                          y1="0"
+                          x2={x} 
+                          y2={y}
+                          stroke="#E5E7EB"
+                          strokeWidth="1"
+                          strokeDasharray="3,3"
+                          style={{
+                            animation: `drawLine 1s ease-out ${index * 0.2}s forwards`
+                          }}
+                        />
+                      );
+                    })}
+                  </svg>
                 </div>
               </div>
             )}
@@ -662,7 +610,7 @@ const OperationalMetrics = ({ metrics }) => {
               </div>
             </div>
             
-            {completedOptimizations.length > 0 && (
+            {(completedOptimizations.length > 0 || aiSimulationState === 'complete') && (
               <div>
                 <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
                   <Layers size={16} style={{ marginRight: '8px', color: '#10B981' }} />
@@ -687,8 +635,13 @@ const OperationalMetrics = ({ metrics }) => {
                         borderLeft: '4px solid #10B981',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        animation: 'slideIn 0.5s ease-out',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        transform: selectedMetric === opt.id ? 'scale(1.02)' : 'scale(1)',
                       }}
+                      onClick={() => setSelectedMetric(selectedMetric === opt.id ? null : opt.id)}
                     >
                       <div>
                         <div style={{ fontWeight: '500' }}>{opt.title}</div>
@@ -720,7 +673,7 @@ const OperationalMetrics = ({ metrics }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <Activity size={16} style={{ color: '#10B981', marginRight: '8px' }} />
-              <span style={{ fontWeight: '500', fontSize: '14px' }}>Performance Improvement: </span>
+              <span style={{ fontWeight: '500', fontSize: '14px' }}>Total Performance Improvement: </span>
               <span style={{ color: '#10B981', fontWeight: '600', marginLeft: '4px' }}>+15.0%</span>
             </div>
             <button
@@ -729,6 +682,7 @@ const OperationalMetrics = ({ metrics }) => {
                 setAiInsights([]);
                 setCompletedOptimizations([]);
                 setOptimizationProgress(0);
+                setSelectedMetric(null);
               }}
               style={{
                 backgroundColor: '#4F46E5',
@@ -745,73 +699,262 @@ const OperationalMetrics = ({ metrics }) => {
             </button>
           </div>
         )}
-      </div>
-    );
-  };
-
-  // Main return of OperationalMetrics component
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Operational Performance</h2>
-        <button
-          onClick={() => setShowAIVisualization(!showAIVisualization)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            backgroundColor: "#4F46E5",
-            color: "white",
-            padding: "8px 16px",
-            borderRadius: "6px",
-            border: "none",
-            fontWeight: "500",
-            cursor: "pointer",
-            transition: "background-color 0.2s ease"
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#4338CA"}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#4F46E5"}
-        >
-          <Brain size={16} />
-          <span>{showAIVisualization ? "Hide AI Analysis" : "Show AI Analysis"}</span>
-        </button>
+        
+        {/* Additional detailed sections after simulation completes */}
+        {aiSimulationState === 'complete' && (
+          <>
+            {/* Detailed KPI improvements section */}
+            <div style={{
+              padding: '15px 20px',
+              borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+            }}>
+              <h4 style={{ 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                marginBottom: '12px',
+                color: '#374151'
+              }}>
+                Detailed KPI Improvements
+              </h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '10px'
+              }}>
+                {[
+                  { 
+                    label: 'On-Time Performance', 
+                    before: '88.5%', 
+                    after: '94.1%', 
+                    gain: '+5.6%',
+                    color: '#3B82F6',
+                    icon: Clock
+                  },
+                  { 
+                    label: 'Fuel Efficiency', 
+                    before: '82.3%', 
+                    after: '87.6%', 
+                    gain: '+5.3%',
+                    color: '#10B981',
+                    icon: Gauge
+                  },
+                  { 
+                    label: 'Crew Utilization', 
+                    before: '76.8%', 
+                    after: '85.2%', 
+                    gain: '+8.4%',
+                    color: '#8B5CF6',
+                    icon: Users
+                  },
+                  { 
+                    label: 'Maintenance Cost', 
+                    before: '$134,250', 
+                    after: '$119,890', 
+                    gain: '-10.7%',
+                    color: '#F97316',
+                    icon: Wrench
+                  },
+                  { 
+                    label: 'Gate Turnaround Time', 
+                    before: '42 min', 
+                    after: '38 min', 
+                    gain: '-9.5%',
+                    color: '#EC4899',
+                    icon: Clock
+                  },
+                  { 
+                    label: 'Customer Satisfaction', 
+                    before: '82%', 
+                    after: '88%', 
+                    gain: '+6.0%',
+                    color: '#6366F1',
+                    icon: Cpu
+                  }
+                ].map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <div 
+                      key={index}
+                      style={{
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`
+                      }}
+                    >
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '8px',
+                        backgroundColor: `${item.color}10`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Icon size={20} color={item.color} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '4px' }}>
+                          {item.label}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ 
+                            fontSize: '12px', 
+                            color: '#9CA3AF',
+                            textDecoration: 'line-through'
+                          }}>
+                            {item.before}
+                          </span>
+                          <span style={{ 
+                            fontSize: '14px', 
+                            fontWeight: '600',
+                            color: '#374151'
+                          }}>
+                            {item.after}
+                          </span>
+                          <span style={{
+                            fontSize: '12px',
+                            color: item.gain.startsWith('+') ? '#10B981' : '#EF4444',
+                            fontWeight: '500'
+                          }}>
+                            {item.gain}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Recommendations and Next Steps */}
+            <div style={{
+              padding: '15px 20px',
+              borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+            }}>
+              <h4 style={{ 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                marginBottom: '12px',
+                color: '#374151',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <Brain size={16} style={{ marginRight: '8px', color: '#4F46E5' }} />
+                AI Recommendations & Next Steps
+              </h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '10px'
+              }}>
+                {[
+                  {
+                    title: 'Apply Crew Schedule Optimization',
+                    description: 'New schedule reduces fatigue by 18% while improving coverage',
+                    priority: 'High',
+                    timeframe: 'Within 48 hours'
+                  },
+                  {
+                    title: 'Implement Fuel Route Optimization',
+                    description: 'Can save up to 230,000 gallons annually with new routes',
+                    priority: 'High',
+                    timeframe: 'Next flight cycle'
+                  },
+                  {
+                    title: 'Update Maintenance Schedule',
+                    description: 'Preventative maintenance timing optimized for minimal disruption',
+                    priority: 'Medium',
+                    timeframe: 'Within 1 week'
+                  },
+                  {
+                    title: 'Review Gate Allocation Algorithm',
+                    description: 'New algorithm reduces taxiing time and improves connectivity',
+                    priority: 'Medium',
+                    timeframe: 'Within 2 weeks'
+                  }
+                ].map((item, index) => (
+                  <div 
+                    key={index}
+                    style={{
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      animation: `fadeIn 0.5s ease-out ${0.3 + index * 0.1}s both`
+                    }}
+                  >
+                    <div style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>
+                      {item.title}
+                    </div>
+                    <div style={{ 
+                      fontSize: '13px', 
+                      color: '#6B7280',
+                      marginBottom: '8px'
+                    }}>
+                      {item.description}
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between'
+                    }}>
+                      <div style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <span style={{ 
+                          fontSize: '12px', 
+                          color: '#9CA3AF'
+                        }}>
+                          Priority:
+                        </span>
+                        <span style={{ 
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          color: item.priority === 'High' ? '#EF4444' : '#F97316'
+                        }}>
+                          {item.priority}
+                        </span>
+                      </div>
+                      <div style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <span style={{ 
+                          fontSize: '12px', 
+                          color: '#9CA3AF'
+                        }}>
+                          Timeframe:
+                        </span>
+                        <span style={{ 
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          color: '#374151'
+                        }}>
+                          {item.timeframe}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
       
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)" }}>
-        <MetricCard 
-          title="On-Time Performance" 
-          value={metrics?.onTimePerformance || 85}
-          icon={Gauge}
-          trend={2.3}
-          color="blue"
-        />
-        <MetricCard 
-          title="Fuel Efficiency" 
-          value={metrics?.fuelEfficiency || 78}
-          icon={Gauge}
-          trend={1.6}
-          color="emerald"
-        />
-        <MetricCard 
-          title="Crew Utilization" 
-          value={metrics?.crewUtilization || 82}
-          icon={Users}
-          trend={0.5}
-          color="indigo"
-        />
-        <MetricCard 
-          title="Load Factor" 
-          value={metrics?.loadFactor || 75}
-          icon={Calendar}
-          trend={-0.8}
-          color="amber"
-        />
-      </div>
-
-      <SimpleBarChart data={metrics?.dailyMetrics || []} />
-      
-      {showAIVisualization && <AIVisualization />}
-      
+      {/* Add style for animations */}
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
