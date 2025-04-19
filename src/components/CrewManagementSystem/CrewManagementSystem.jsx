@@ -158,6 +158,7 @@ const CrewManagementSystem = () => {
   const [showDeploymentDialog, setShowDeploymentDialog] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState('idle');
   const [showPlanDetails, setShowPlanDetails] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   const crewNames = [
     'James Wilson', 'Sarah Chen', 'Michael Rodriguez',    // Gate Operations
@@ -216,32 +217,19 @@ const CrewManagementSystem = () => {
     setOpenDialog(false);
   };
 
-  const connectToSaberCMS = async () => {
+  const connectToSabreCMS = async () => {
     setCmsStatus('connecting');
+    setStatusMessage('Connecting...');
+    
+    // Simulate API call to Sabre CMS
     try {
-      // Simulate API call to Saber CMS
       await new Promise(resolve => setTimeout(resolve, 2000));
       setCmsStatus('connected');
-      // Simulate fetching crew schedules with realistic names and roles
-      const schedules = Array.from({ length: 12 }, (_, i) => ({
-        id: i + 1,
-        name: crewNames[i],
-        role: groundStaffRoles[i],
-        schedules: Array.from({ length: 5 }, (_, j) => ({
-          date: new Date(Date.now() + (j + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          flights: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, k) => ({
-            flightNumber: `FL${Math.floor(Math.random() * 1000)}`,
-            departure: `${Math.floor(Math.random() * 24)}:00`,
-            arrival: `${Math.floor(Math.random() * 24)}:00`,
-            route: ['JFK-LHR', 'LAX-SYD', 'DXB-SIN', 'HKG-NRT'][Math.floor(Math.random() * 4)],
-            criticality: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)]
-          }))
-        }))
-      }));
-      setCrewSchedules(schedules);
+      setStatusMessage('Connected');
     } catch (error) {
-      setCmsStatus('disconnected');
-      setError('Failed to connect to Saber CMS');
+      setCmsStatus('error');
+      setStatusMessage('Connection failed');
+      setError('Failed to connect to Sabre CMS');
     }
   };
 
@@ -313,7 +301,7 @@ const CrewManagementSystem = () => {
       }, 2000);
     } catch (error) {
       setSubmissionStatus('idle');
-      setError('Failed to submit to Saber CMS');
+      setError('Failed to submit to Sabre CMS');
     }
   };
 
@@ -322,7 +310,7 @@ const CrewManagementSystem = () => {
       connecting: {
         icon: <CloudSyncIcon />,
         color: 'warning.main',
-        message: 'Connecting to Saber CMS...'
+        message: 'Connecting to Sabre CMS...'
       },
       updating: {
         icon: <UpdateIcon />,
@@ -698,7 +686,7 @@ const CrewManagementSystem = () => {
           endIcon={<ArrowForwardIcon />}
           size="small"
         >
-          Submit to Saber CMS
+          Submit to Sabre CMS
         </Button>
       </DialogActions>
     </Dialog>
@@ -720,7 +708,7 @@ const CrewManagementSystem = () => {
         </Button>
       </Box>
 
-      {/* Saber CMS Connection Status */}
+      {/* Sabre CMS Connection Status */}
       <AnimatedCard
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -741,10 +729,9 @@ const CrewManagementSystem = () => {
                  cmsStatus === 'connecting' ? <CloudSyncIcon /> : <CloudOffIcon />}
               </Avatar>
               <Box>
-                <Typography variant="h6">Saber CMS Connection</Typography>
+                <Typography variant="h6">Sabre CMS Connection</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {cmsStatus === 'connected' ? 'Connected and ready' :
-                   cmsStatus === 'connecting' ? 'Connecting...' : 'Not connected'}
+                  {statusMessage}
                 </Typography>
               </Box>
             </Box>
@@ -752,10 +739,10 @@ const CrewManagementSystem = () => {
               variant="contained"
               color={cmsStatus === 'connected' ? 'success' : 'primary'}
               startIcon={<CloudSyncIcon />}
-              onClick={connectToSaberCMS}
+              onClick={connectToSabreCMS}
               disabled={cmsStatus === 'connecting'}
             >
-              {cmsStatus === 'connected' ? 'Reconnect' : 'Connect to Saber CMS'}
+              {cmsStatus === 'connected' ? 'Reconnect' : 'Connect to Sabre CMS'}
             </Button>
           </Box>
         </CardContent>
@@ -903,12 +890,12 @@ const CrewManagementSystem = () => {
             color="primary"
             disabled={!selectedDeploymentPlan}
             onClick={() => {
-              // Here you would implement the actual submission to Saber CMS
+              // Here you would implement the actual submission to Sabre CMS
               setShowDeploymentDialog(false);
               // Show success message or handle the submission
             }}
           >
-            Submit to Saber CMS
+            Submit to Sabre CMS
           </Button>
         </DialogActions>
       </Dialog>
